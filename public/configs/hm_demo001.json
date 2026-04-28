@@ -1,0 +1,48 @@
+{
+  "hotelName": "Hotel Marquise",
+  "title": "",
+  "aggregateScore": "4.8",
+  "totalReviews": "1,347",
+  "accentColor": "#432975",
+  "badgeBg": "#ECE2FF",
+  "badgeText": "#8764C9",
+  "footerText": "Verified guest reviews · Updated daily",
+  "platforms": [
+    {
+      "id": "booking",
+      "name": "Booking.com",
+      "short": "B.",
+      "score": "8.9",
+      "scale": "/10",
+      "color": "#003580",
+      "count": "842"
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "short": "G",
+      "score": "4.8",
+      "scale": "/5",
+      "color": "#4285F4",
+      "count": "316"
+    },
+    {
+      "id": "tripadvisor",
+      "name": "Tripadvisor",
+      "short": "TA",
+      "score": "4.7",
+      "scale": "/5",
+      "color": "#34E0A1",
+      "count": "189"
+    },
+    {
+      "id": "expedia",
+      "name": "Expedia",
+      "short": "E",
+      "scale": "/5",
+      "color": "#FFC72C",
+      "score": "8.9",
+      "count": "842"
+    }
+  ]
+}
