@@ -18,23 +18,31 @@ function findMountNode() {
   let node =
     document.getElementById('reassurance-widget') ||
     document.querySelector('[data-reassurance-widget]');
-  if (node) return node;
+  if (node) return { node, autoCreated: false };
   node = document.createElement('div');
   node.id = 'reassurance-widget';
   document.body.appendChild(node);
-  return node;
+  return { node, autoCreated: true };
 }
 
 async function mount() {
-  const host = findMountNode();
+  const { node: host, autoCreated } = findMountNode();
   if (!host) return;
-  if (host.shadowRoot) return; // already mounted
+  if (host.shadowRoot) {
+    // Surface the silent no-op so a duplicated <script> tag, GTM
+    // re-firing, or HMR don't look like the widget never loaded.
+    console.warn('[reassurance-widget] already mounted, skipping');
+    return;
+  }
 
   let config;
   try {
     config = await loadConfig();
   } catch (err) {
     console.error('[reassurance-widget]', err.message);
+    // Don't leave an empty <div> stuck in the host page when the
+    // config failed and we created the mount point ourselves.
+    if (autoCreated) host.remove();
     return;
   }
 
