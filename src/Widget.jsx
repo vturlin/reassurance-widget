@@ -37,6 +37,14 @@ const STYLE_TEXT = `
     width: auto !important;
   }
 }
+
+/* Honour the user's motion preference. The fade-in is mild but
+   still motion; reduced-motion users get no animation. */
+@media (prefers-reduced-motion: reduce) {
+  .reassure-toast {
+    animation: none !important;
+  }
+}
 `;
 
 function ensureKeyframes(rootNode) {
@@ -165,6 +173,10 @@ export default function MultiPlatformReviewsWidget({
       ref={ref}
       role="region"
       aria-label="Guest reviews"
+      // Announce to screen readers when the toast appears (after a
+      // delay, or on scroll). Polite so it doesn't interrupt the
+      // current task; the toast is informational, not urgent.
+      aria-live="polite"
       className="reassure-toast"
       style={{
         position: 'fixed',
