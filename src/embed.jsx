@@ -2,6 +2,30 @@ import { createRoot } from 'react-dom/client';
 import MultiPlatformReviewsWidget from './Widget.jsx';
 import { loadConfig } from './loader.js';
 
+// ─── Dismiss persistence ────────────────────────────────────────────
+// Once the visitor closes the toast we keep it muted for the rest of
+// the session (sessionStorage = cleared on tab close). Keyed by
+// hotelId so a browser visiting two hotels in the same session sees
+// each toast once. Try/catch covers private-mode browsers that throw
+// on storage access.
+const DISMISSED_KEY_PREFIX = 'reassurance_dismissed_';
+
+function isDismissedThisSession(hotelId) {
+  try {
+    return !!sessionStorage.getItem(DISMISSED_KEY_PREFIX + (hotelId || 'default'));
+  } catch {
+    return false;
+  }
+}
+
+function markDismissedThisSession(hotelId) {
+  try {
+    sessionStorage.setItem(DISMISSED_KEY_PREFIX + (hotelId || 'default'), '1');
+  } catch {
+    /* private mode / sessionStorage unavailable — silently no-op */
+  }
+}
+
 /**
  * Auto-mount on DOM ready. Finds #reassurance-widget (documented
  * target) or data-reassurance-widget (advanced); auto-creates one
@@ -46,6 +70,14 @@ async function mount() {
     return;
   }
 
+  // Skip mount entirely if the visitor dismissed the toast earlier
+  // in this session. Preview mode (admin iframe) bypasses the check
+  // so the operator can keep editing without re-opening the tab.
+  if (!config._preview && isDismissedThisSession(config._hotelId)) {
+    if (autoCreated) host.remove();
+    return;
+  }
+
   const shadow = host.attachShadow({ mode: 'open' });
   const container = document.createElement('div');
   container.className = 'reassurance-widget-root';
@@ -54,6 +86,7 @@ async function mount() {
   const root = createRoot(container);
 
   function handleDismiss() {
+    if (!config._preview) markDismissedThisSession(config._hotelId);
     root.unmount();
     host.remove();
   }
