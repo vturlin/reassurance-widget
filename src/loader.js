@@ -76,12 +76,9 @@ export function normalizeConfig(raw) {
 
   return {
     _hotelId: raw._hotelId || null,
-    title: pick('title'),
     aggregateScore: pick('aggregateScore'),
     totalReviews: pick('totalReviews'),
     accentColor: pick('accentColor'),
-    badgeBg: pick('badgeBg'),
-    badgeText: pick('badgeText'),
     footerText: pick('footerText'),
     platforms,
     _preview: raw._preview === true,

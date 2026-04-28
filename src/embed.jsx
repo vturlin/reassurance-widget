@@ -52,12 +52,9 @@ async function mount() {
 
   root.render(
     <MultiPlatformReviewsWidget
-      title={config.title}
       aggregateScore={config.aggregateScore}
       totalReviews={config.totalReviews}
       accentColor={config.accentColor}
-      badgeBg={config.badgeBg}
-      badgeText={config.badgeText}
       footerText={config.footerText}
       platforms={config.platforms}
       onDismiss={handleDismiss}

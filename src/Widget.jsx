@@ -4,7 +4,7 @@
  * (Booking, Google, Tripadvisor, Hotels.com…).
  *
  * Three vertical sections separated by 1px dividers:
- *   1. Header strip   — pill badge + aggregate score + dismiss ×
+ *   1. Header strip   — aggregate score + dismiss ×
  *   2. Per-platform   — letter dot + name + score + thin progress bar
  *   3. Footer         — small check + trust line
  *
@@ -65,12 +65,9 @@ function normalizedRatio(scoreStr, scale) {
 }
 
 export default function MultiPlatformReviewsWidget({
-  title = 'Guest reviews',
   aggregateScore = '4.8',
   totalReviews = '1,347',
   accentColor = '#432975',
-  badgeBg = '#ECE2FF',
-  badgeText = '#8764C9',
   platforms = DEFAULT_PLATFORMS,
   footerText = 'Verified guest reviews · Updated daily',
   onDismiss,
@@ -93,7 +90,7 @@ export default function MultiPlatformReviewsWidget({
     <div
       ref={ref}
       role="region"
-      aria-label={title}
+      aria-label="Guest reviews"
       className="reassure-toast"
       style={{
         position: 'fixed',
@@ -147,25 +144,8 @@ export default function MultiPlatformReviewsWidget({
           </button>
         )}
 
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '3px 6px',
-            background: badgeBg,
-            color: badgeText,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            borderRadius: 2,
-          }}
-        >
-          {title}
-        </span>
-
         <div
           style={{
-            marginTop: 6,
             display: 'flex',
             alignItems: 'baseline',
             gap: 8,
