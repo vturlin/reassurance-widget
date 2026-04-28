@@ -14,21 +14,26 @@
  * root, so a shadow-DOM mount scopes everything correctly.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const STYLE_ID = 'reassurance-widget-keyframes';
 const STYLE_TEXT = `
-@keyframes reassure-slide-in {
-  from { opacity: 0; transform: translateX(-16px) translateY(8px); }
-  to   { opacity: 1; transform: translateX(0) translateY(0); }
+@keyframes reassure-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Mobile (<= 480px): pin to bottom and stretch horizontally with a
-   small inset so the toast doesn't overflow narrow viewports. */
+   small inset so the toast doesn't overflow narrow viewports. The
+   wrapper carries the position rules; mobile resets the corner
+   anchoring to a single bottom-aligned full-width sheet feel. */
 @media (max-width: 480px) {
   .reassure-toast {
     left: 12px !important;
     right: 12px !important;
+    top: auto !important;
+    bottom: 12px !important;
+    transform: none !important;
     width: auto !important;
   }
 }
@@ -64,12 +69,74 @@ function normalizedRatio(scoreStr, scale) {
   return Math.max(0, Math.min(1, r));
 }
 
+// Position-aware fixed offsets. center-* uses translateY(-50%) on
+// the wrapper element; the inner card runs its own opacity-only
+// animation so there's no transform conflict.
+function positionStyle(position) {
+  switch (position) {
+    case 'top-left':
+      return { top: 24, left: 24 };
+    case 'top-right':
+      return { top: 24, right: 24 };
+    case 'center-left':
+      return { top: '50%', left: 24, transform: 'translateY(-50%)' };
+    case 'center-right':
+      return { top: '50%', right: 24, transform: 'translateY(-50%)' };
+    case 'bottom-right':
+      return { bottom: 24, right: 24 };
+    case 'bottom-left':
+    default:
+      return { bottom: 24, left: 24 };
+  }
+}
+
+// Visibility gate. 'immediate' (or undefined) renders straight
+// away; 'time' waits triggerDelaySec seconds; 'scroll' waits for
+// the user to scroll past triggerScrollPercent of the page;
+// 'time_or_scroll' fires on whichever trigger lands first.
+function useTriggeredVisibility(triggerMode, triggerDelaySec, triggerScrollPercent) {
+  const isImmediate = !triggerMode || triggerMode === 'immediate';
+  const [visible, setVisible] = useState(isImmediate);
+
+  useEffect(() => {
+    if (isImmediate || visible) return;
+    const fire = () => setVisible(true);
+    let timer;
+    let scrollHandler;
+
+    if (triggerMode === 'time' || triggerMode === 'time_or_scroll') {
+      const ms = Math.max(0, triggerDelaySec || 5) * 1000;
+      timer = setTimeout(fire, ms);
+    }
+    if (triggerMode === 'scroll' || triggerMode === 'time_or_scroll') {
+      const threshold = (triggerScrollPercent || 50) / 100;
+      scrollHandler = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        if (max <= 0) return;
+        if (window.scrollY / max >= threshold) fire();
+      };
+      window.addEventListener('scroll', scrollHandler, { passive: true });
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+    };
+  }, [isImmediate, triggerMode, triggerDelaySec, triggerScrollPercent, visible]);
+
+  return visible;
+}
+
 export default function MultiPlatformReviewsWidget({
   aggregateScore = '4.8',
   totalReviews = '1,347',
   accentColor = '#432975',
   platforms = DEFAULT_PLATFORMS,
   footerText = 'Verified guest reviews · Updated daily',
+  position = 'bottom-left',
+  triggerMode = 'immediate',
+  triggerDelaySec = 5,
+  triggerScrollPercent = 50,
   onDismiss,
 }) {
   const ref = useRef(null);
@@ -81,6 +148,13 @@ export default function MultiPlatformReviewsWidget({
       : document;
     ensureKeyframes(root);
   }, []);
+
+  const visible = useTriggeredVisibility(
+    triggerMode,
+    triggerDelaySec,
+    triggerScrollPercent
+  );
+  if (!visible) return null;
 
   const safePlatforms = Array.isArray(platforms) && platforms.length
     ? platforms
@@ -94,8 +168,6 @@ export default function MultiPlatformReviewsWidget({
       className="reassure-toast"
       style={{
         position: 'fixed',
-        left: 24,
-        bottom: 24,
         zIndex: 1000,
         width: 340,
         maxWidth: 'calc(100vw - 48px)',
@@ -107,7 +179,8 @@ export default function MultiPlatformReviewsWidget({
         overflow: 'hidden',
         fontFamily:
           '"Open Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-        animation: 'reassure-slide-in 420ms cubic-bezier(.2,.7,.3,1) both',
+        animation: 'reassure-fade-in 420ms cubic-bezier(.2,.7,.3,1) both',
+        ...positionStyle(position),
       }}
     >
       {/* ── Header strip ───────────────────────────────────────── */}

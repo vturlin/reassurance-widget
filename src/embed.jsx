@@ -57,6 +57,10 @@ async function mount() {
       accentColor={config.accentColor}
       footerText={config.footerText}
       platforms={config.platforms}
+      position={config.position}
+      triggerMode={config.triggerMode}
+      triggerDelaySec={config.triggerDelaySec}
+      triggerScrollPercent={config.triggerScrollPercent}
       onDismiss={handleDismiss}
     />
   );

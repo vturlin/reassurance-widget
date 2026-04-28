@@ -74,6 +74,28 @@ export function normalizeConfig(raw) {
     ? raw.platforms.map(normalizePlatform).filter(Boolean).slice(0, 8)
     : undefined;
 
+  const validPositions = [
+    'bottom-right', 'bottom-left',
+    'center-right', 'center-left',
+    'top-right',    'top-left',
+  ];
+  const position = validPositions.includes(raw.position)
+    ? raw.position
+    : undefined;
+
+  const validTriggers = ['immediate', 'time', 'scroll', 'time_or_scroll'];
+  const triggerMode = validTriggers.includes(raw.triggerMode)
+    ? raw.triggerMode
+    : undefined;
+
+  const triggerDelaySec = Number.isFinite(raw.triggerDelaySec)
+    ? Math.max(0, Math.min(120, Math.round(raw.triggerDelaySec)))
+    : undefined;
+
+  const triggerScrollPercent = Number.isFinite(raw.triggerScrollPercent)
+    ? Math.max(5, Math.min(95, Math.round(raw.triggerScrollPercent)))
+    : undefined;
+
   return {
     _hotelId: raw._hotelId || null,
     aggregateScore: pick('aggregateScore'),
@@ -81,6 +103,10 @@ export function normalizeConfig(raw) {
     accentColor: pick('accentColor'),
     footerText: pick('footerText'),
     platforms,
+    position,
+    triggerMode,
+    triggerDelaySec,
+    triggerScrollPercent,
     _preview: raw._preview === true,
   };
 }
